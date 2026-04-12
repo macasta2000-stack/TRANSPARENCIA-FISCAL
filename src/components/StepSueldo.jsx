@@ -19,9 +19,10 @@ const NIVEL_COLORS = {
   colegio: "#06B6D4",
 };
 
-export default function StepSueldo({ sueldo, setSueldo, provincia }) {
+export default function StepSueldo({ sueldo, setSueldo, provincia, modo }) {
   const monto = parseFloat(sueldo.monto) || 0;
   const esDependencia = sueldo.relacion === "dependencia";
+  const esEmpleador = modo === "empleador";
 
   const carga = useMemo(() => {
     if (monto <= 0) return null;
@@ -32,40 +33,44 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
 
   return (
     <div className="step step-sueldo">
-      <h2 className="step-title">Tu sueldo</h2>
+      <h2 className="step-title">{esEmpleador ? "Salario que pagas" : "Tu sueldo"}</h2>
       <p className="step-subtitle">
-        Empecemos por lo que ganás. Toda la info queda en tu dispositivo.
+        {esEmpleador
+          ? "Ingresa el salario bruto que le pagas a tu empleado. Calculamos el costo real total."
+          : "Empecemos por lo que ganas. Toda la info queda en tu dispositivo."}
       </p>
 
-      <div className="field-group">
-        <label className="field-label">¿Cómo querés ingresar tu sueldo?</label>
-        <div className="toggle-group">
-          <button
-            className={`toggle-btn ${sueldo.tipo === "neto" ? "active" : ""}`}
-            onClick={() => setSueldo({ tipo: "neto" })}
-          >
-            Sueldo NETO
-            <span className="toggle-sub">Lo que te depositan</span>
-          </button>
-          <button
-            className={`toggle-btn ${sueldo.tipo === "bruto" ? "active" : ""}`}
-            onClick={() => setSueldo({ tipo: "bruto" })}
-          >
-            Sueldo BRUTO
-            <span className="toggle-sub">Antes de descuentos</span>
-          </button>
+      {!esEmpleador && (
+        <div className="field-group">
+          <label className="field-label">¿Como queres ingresar tu sueldo?</label>
+          <div className="toggle-group">
+            <button
+              className={`toggle-btn ${sueldo.tipo === "neto" ? "active" : ""}`}
+              onClick={() => setSueldo({ tipo: "neto" })}
+            >
+              Sueldo NETO
+              <span className="toggle-sub">Lo que te depositan</span>
+            </button>
+            <button
+              className={`toggle-btn ${sueldo.tipo === "bruto" ? "active" : ""}`}
+              onClick={() => setSueldo({ tipo: "bruto" })}
+            >
+              Sueldo BRUTO
+              <span className="toggle-sub">Antes de descuentos</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="field-group">
-        <label className="field-label">Monto mensual</label>
+        <label className="field-label">{esEmpleador ? "Salario bruto mensual" : "Monto mensual"}</label>
         <div className="input-with-prefix">
           <span className="input-prefix">$</span>
           <input
             type="text"
             inputMode="numeric"
             className="main-input"
-            placeholder="Ej: 1.200.000"
+            placeholder={esEmpleador ? "Ej: 2.000.000" : "Ej: 1.200.000"}
             value={sueldo.monto}
             onChange={(e) => {
               const raw = e.target.value.replace(/[^0-9]/g, "");
@@ -75,29 +80,31 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
         </div>
       </div>
 
-      <div className="field-group">
-        <label className="field-label">¿En qué relación laboral?</label>
-        <div className="toggle-group toggle-group-3">
-          <button
-            className={`toggle-btn ${sueldo.relacion === "dependencia" ? "active" : ""}`}
-            onClick={() => setSueldo({ relacion: "dependencia" })}
-          >
-            Relación de dependencia
-          </button>
-          <button
-            className={`toggle-btn ${sueldo.relacion === "monotributista" ? "active" : ""}`}
-            onClick={() => setSueldo({ relacion: "monotributista" })}
-          >
-            Monotributista
-          </button>
-          <button
-            className={`toggle-btn ${sueldo.relacion === "autonomo" ? "active" : ""}`}
-            onClick={() => setSueldo({ relacion: "autonomo" })}
-          >
-            Autónomo
-          </button>
+      {!esEmpleador && (
+        <div className="field-group">
+          <label className="field-label">¿En que relacion laboral?</label>
+          <div className="toggle-group toggle-group-3">
+            <button
+              className={`toggle-btn ${sueldo.relacion === "dependencia" ? "active" : ""}`}
+              onClick={() => setSueldo({ relacion: "dependencia" })}
+            >
+              Relacion de dependencia
+            </button>
+            <button
+              className={`toggle-btn ${sueldo.relacion === "monotributista" ? "active" : ""}`}
+              onClick={() => setSueldo({ relacion: "monotributista" })}
+            >
+              Monotributista
+            </button>
+            <button
+              className={`toggle-btn ${sueldo.relacion === "autonomo" ? "active" : ""}`}
+              onClick={() => setSueldo({ relacion: "autonomo" })}
+            >
+              Autonomo
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {sueldo.relacion === "monotributista" && (
         <div className="field-group">
@@ -117,11 +124,11 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
         </div>
       )}
 
-      {/* Selector de rubro/sindicato — solo para dependencia */}
-      {esDependencia && (
+      {/* Selector de rubro/sindicato — para dependencia y empleador */}
+      {(esDependencia || esEmpleador) && (
         <>
           <div className="field-group">
-            <label className="field-label">¿En qué rubro trabajás?</label>
+            <label className="field-label">{esEmpleador ? "¿En que rubro esta tu empleado?" : "¿En que rubro trabajas?"}</label>
             <select
               className="select-input"
               value={sueldo.sindicato}
@@ -137,7 +144,7 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
 
           {sindicatoSeleccionado && (sindicatoSeleccionado.cuota_afiliado || sindicatoSeleccionado.contribucion_solidaria) && (
             <div className="field-group">
-              <label className="field-label">¿Estás afiliado al sindicato?</label>
+              <label className="field-label">{esEmpleador ? "¿Tu empleado esta afiliado al sindicato?" : "¿Estas afiliado al sindicato?"}</label>
               <div className="toggle-group">
                 <button
                   className={`toggle-btn small ${sueldo.afiliadoSindicato ? "active" : ""}`}
@@ -254,7 +261,7 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
       {carga && carga.total_mensual > 0 && (
         <div className="sueldo-preview">
           <div className="sueldo-preview-header">
-            <span className="sueldo-preview-title">Lo que te sacan de tu sueldo</span>
+            <span className="sueldo-preview-title">{esEmpleador ? "Costo total de este empleado" : "Lo que te sacan de tu sueldo"}</span>
             <span className="sueldo-preview-total">{formatearPesos(carga.total_mensual)}/mes</span>
           </div>
 
@@ -262,7 +269,7 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
             {/* Aportes del empleado */}
             {carga.items.filter(i => i.grupo === "empleado").length > 0 && (
               <div className="sueldo-preview-group">
-                <span className="sueldo-preview-group-label">Te descuentan del recibo</span>
+                <span className="sueldo-preview-group-label">{esEmpleador ? "Le descuentan al empleado del recibo" : "Te descuentan del recibo"}</span>
                 {carga.items.filter(i => i.grupo === "empleado").map((item, idx) => (
                   <div key={idx} className="sueldo-preview-row">
                     <span className="sueldo-preview-dot" style={{ background: NIVEL_COLORS[item.nivel] || "#FF3B3B" }} />
@@ -310,7 +317,7 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
             {/* Patronales (lo que nunca ves) */}
             {carga.items.filter(i => i.grupo === "patronal").length > 0 && (
               <div className="sueldo-preview-group">
-                <span className="sueldo-preview-group-label">Lo que nunca ves (paga tu empleador)</span>
+                <span className="sueldo-preview-group-label">{esEmpleador ? "Lo que vos pagas encima del bruto" : "Lo que nunca ves (paga tu empleador)"}</span>
                 {carga.items.filter(i => i.grupo === "patronal").map((item, idx) => (
                   <div key={idx} className="sueldo-preview-row patronal">
                     <span className="sueldo-preview-dot" style={{ background: NIVEL_COLORS[item.nivel] || "#FF3B3B" }} />
@@ -334,15 +341,15 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
               </div>
             )}
             <div className="sueldo-summary-row">
-              <span>Te descuentan del recibo (lo que VOS perdés)</span>
+              <span>{esEmpleador ? "Le descuentan al empleado del recibo" : "Te descuentan del recibo (lo que VOS perdes)"}</span>
               <span className="sueldo-summary-val accent">{formatearPesos(carga.aportes_empleado + (carga.sindical || 0))}</span>
             </div>
             <div className="sueldo-summary-row">
-              <span>Tu empleador paga extra sin que lo veas</span>
+              <span>{esEmpleador ? "Lo que VOS pagas encima del bruto (cargas patronales)" : "Tu empleador paga extra sin que lo veas"}</span>
               <span className="sueldo-summary-val">{formatearPesos(carga.contribuciones_patronales)}</span>
             </div>
             <div className="sueldo-summary-row subtle">
-              <span>Costo total para tu empleador</span>
+              <span>{esEmpleador ? "COSTO TOTAL que te sale este empleado" : "Costo total para tu empleador"}</span>
               <span className="sueldo-summary-val">{formatearPesos(carga.costoTotalEmpleador)}</span>
             </div>
             <div className="sueldo-summary-row highlight">
@@ -351,12 +358,17 @@ export default function StepSueldo({ sueldo, setSueldo, provincia }) {
             </div>
             {carga.costoTotalEmpleador > 0 && (
               <div className="sueldo-summary-pct">
-                De cada $100 que cuesta tu trabajo, <strong>${Math.round((carga.total_mensual / carga.costoTotalEmpleador) * 100)}</strong> se los lleva el sistema. Vos recibís <strong>${Math.round(((carga.costoTotalEmpleador - carga.total_mensual) / carga.costoTotalEmpleador) * 100)}</strong>.
+                {esEmpleador
+                  ? <>De cada $100 que destinas a este empleado, <strong>${Math.round((carga.total_mensual / carga.costoTotalEmpleador) * 100)}</strong> se los lleva el sistema. Al empleado le llegan <strong>${Math.round(((carga.costoTotalEmpleador - carga.total_mensual) / carga.costoTotalEmpleador) * 100)}</strong>.</>
+                  : <>De cada $100 que cuesta tu trabajo, <strong>${Math.round((carga.total_mensual / carga.costoTotalEmpleador) * 100)}</strong> se los lleva el sistema. Vos recibis <strong>${Math.round(((carga.costoTotalEmpleador - carga.total_mensual) / carga.costoTotalEmpleador) * 100)}</strong>.</>
+                }
               </div>
             )}
-            <div className="sueldo-summary-nota">
-              <strong>¿Por qué todo es nacional?</strong> En Argentina, los aportes y contribuciones salariales van todos a ANSES/AFIP (nivel nacional). La provincia y el municipio te cobran cuando GASTÁS tu sueldo: IIBB, TISH, tasa vial, etc. Eso lo calculamos en el paso de gastos.
-            </div>
+            {!esEmpleador && (
+              <div className="sueldo-summary-nota">
+                <strong>¿Por que todo es nacional?</strong> En Argentina, los aportes y contribuciones salariales van todos a ANSES/AFIP (nivel nacional). La provincia y el municipio te cobran cuando GASTAS tu sueldo: IIBB, TISH, tasa vial, etc. Eso lo calculamos en el paso de gastos.
+              </div>
+            )}
           </div>
         </div>
       )}

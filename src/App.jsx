@@ -19,7 +19,7 @@ export default function App() {
           />
         );
       case "sueldo":
-        return <StepSueldo sueldo={calc.sueldo} setSueldo={calc.setSueldo} provincia={calc.provincia} />;
+        return <StepSueldo sueldo={calc.sueldo} setSueldo={calc.setSueldo} provincia={calc.provincia} modo={calc.modo} />;
       case "ubicacion":
         return (
           <StepUbicacion
