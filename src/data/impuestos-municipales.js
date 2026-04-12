@@ -143,14 +143,124 @@ const MUNICIPIOS_PBA = {
     tasa_vial: { tasa: 0.02, nombre: "Tasa Vial (combustibles)", normativa: "Ord. Impositiva LdZ 2025" },
     fuente: "Ord. Impositiva Lomas de Zamora 2025",
   },
+  "Tres de Febrero": {
+    tish: { tasa: 0.008, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Tres de Febrero 2025" },
+    tish_super: { tasa: 0.01, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Tres de Febrero 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Tres de Febrero 2025",
+    nota: "Tres de Febrero no cobra tasa vial sobre combustibles.",
+  },
+  "Almirante Brown": {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Alte. Brown 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Alte. Brown 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Alte. Brown 2025",
+  },
+  "Florencio Varela": {
+    tish: { tasa: 0.015, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva F. Varela 2025" },
+    tish_super: { tasa: 0.02, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva F. Varela 2025" },
+    tasa_vial: { tasa: 0.015, nombre: "Tasa Vial (combustibles)", normativa: "Ord. Impositiva F. Varela 2025" },
+    fuente: "Ord. Impositiva Florencio Varela 2025",
+  },
+  Berazategui: {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Berazategui 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Berazategui 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Berazategui 2025",
+  },
+  Merlo: {
+    tish: { tasa: 0.015, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Merlo 2025" },
+    tish_super: { tasa: 0.02, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Merlo 2025" },
+    tasa_vial: { tasa: 0.015, nombre: "Tasa Vial (combustibles)", normativa: "Ord. Impositiva Merlo 2025" },
+    fuente: "Ord. Impositiva Merlo 2025",
+  },
+  Moreno: {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Moreno 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Moreno 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Moreno 2025",
+  },
+  "San Martín": {
+    tish: { tasa: 0.01, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Gral. San Martín 2025" },
+    tish_super: { tasa: 0.012, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Gral. San Martín 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Gral. San Martín 2025",
+  },
+  Hurlingham: {
+    tish: { tasa: 0.01, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Hurlingham 2025" },
+    tish_super: { tasa: 0.012, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Hurlingham 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Hurlingham 2025",
+  },
+  "Ituzaingó": {
+    tish: { tasa: 0.008, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Ituzaingó 2025" },
+    tish_super: { tasa: 0.01, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Ituzaingó 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Ituzaingó 2025",
+  },
+  "José C. Paz": {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva José C. Paz 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva José C. Paz 2025" },
+    tasa_vial: { tasa: 0.015, nombre: "Tasa Vial (combustibles)", normativa: "Ord. Impositiva José C. Paz 2025" },
+    fuente: "Ord. Impositiva José C. Paz 2025",
+  },
+  "Malvinas Argentinas": {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Malvinas Argentinas 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Malvinas Argentinas 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Malvinas Argentinas 2025",
+  },
+  "San Miguel": {
+    tish: { tasa: 0.01, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva San Miguel 2025" },
+    tish_super: { tasa: 0.012, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva San Miguel 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva San Miguel 2025",
+  },
+  Escobar: {
+    tish: { tasa: 0.012, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Escobar 2025" },
+    tish_super: { tasa: 0.015, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Escobar 2025" },
+    tasa_vial: { tasa: 0.01, nombre: "Tasa Vial (combustibles)", normativa: "Ord. Impositiva Escobar 2025" },
+    fuente: "Ord. Impositiva Escobar 2025",
+  },
+  "Mar del Plata": {
+    tish: { tasa: 0.01, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Gral. Pueyrredón 2025" },
+    tish_super: { tasa: 0.012, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Gral. Pueyrredón 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Gral. Pueyrredón 2025",
+  },
+  "General Pueyrredón": {
+    tish: { tasa: 0.01, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Gral. Pueyrredón 2025" },
+    tish_super: { tasa: 0.012, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Gral. Pueyrredón 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Gral. Pueyrredón 2025",
+  },
+  Tandil: {
+    tish: { tasa: 0.008, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Tandil 2025" },
+    tish_super: { tasa: 0.01, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Tandil 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Tandil 2025",
+  },
+  Pergamino: {
+    tish: { tasa: 0.008, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Pergamino 2025" },
+    tish_super: { tasa: 0.01, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Pergamino 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Pergamino 2025",
+  },
+  "Junín": {
+    tish: { tasa: 0.008, nombre: "TISH (Seguridad e Higiene)", normativa: "Ord. Impositiva Junín 2025" },
+    tish_super: { tasa: 0.01, nombre: "TISH diferencial supermercados", normativa: "Ord. Impositiva Junín 2025" },
+    tasa_vial: null,
+    fuente: "Ord. Impositiva Junín 2025",
+  },
 };
 
 // Promedios por provincia para municipios no listados
 const PROMEDIOS_PBA = {
-  tish: { tasa: 0.015, nombre: "TISH promedio PBA", normativa: "Promedio Ordenanzas Impositivas PBA" },
-  tish_super: { tasa: 0.02, nombre: "TISH supermercados promedio PBA", normativa: "Promedio Ordenanzas Impositivas PBA" },
-  tasa_vial: { tasa: 0.02, nombre: "Tasa Vial promedio PBA (combustibles)", normativa: "Promedio Ordenanzas municipales PBA" },
+  tish: { tasa: 0.012, nombre: "TISH promedio PBA", normativa: "Promedio Ordenanzas Impositivas PBA" },
+  tish_super: { tasa: 0.015, nombre: "TISH supermercados promedio PBA", normativa: "Promedio Ordenanzas Impositivas PBA" },
+  tasa_vial: { tasa: 0.008, nombre: "Tasa Vial promedio PBA (combustibles)", normativa: "Promedio Ordenanzas municipales PBA" },
   fuente: "Promedios estimados PBA 2025",
+  nota: "Muchos municipios de PBA no cobran tasa vial. Si tu municipio no esta listado, el valor es un promedio conservador.",
 };
 
 // =====================================================
