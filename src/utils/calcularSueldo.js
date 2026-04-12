@@ -4,6 +4,7 @@ import {
   TASA_TOTAL_APORTES_EMPLEADO,
   TASA_TOTAL_CONTRIBUCIONES_PATRONALES,
   MONOTRIBUTO_2026,
+  MONOTRIBUTO_NORMATIVA,
   GANANCIAS_4TA,
 } from "../data/impuestos-nacionales";
 
@@ -17,10 +18,7 @@ function calcularGanancias4ta(brutoMensual) {
 
   for (let i = 0; i < escala.length; i++) {
     const tramo = escala[i];
-    const anchoTramo =
-      tramo.hasta === Infinity
-        ? restante
-        : tramo.hasta - tramo.desde;
+    const anchoTramo = tramo.hasta === Infinity ? restante : tramo.hasta - tramo.desde;
     const montoEnTramo = Math.min(restante, anchoTramo);
     impuesto += montoEnTramo * tramo.alicuota;
     restante -= montoEnTramo;
@@ -44,11 +42,11 @@ export function calcularCargaSueldo(sueldo) {
       contribuciones_patronales: 0,
       ganancias: 0,
       total_mensual: totalCuota,
-      detalle: {
-        "Componente impositivo": datos.impuesto,
-        "Aporte jubilatorio": datos.jubilacion,
-        "Obra social": datos.obraSocial,
-      },
+      items: [
+        { nombre: "Componente impositivo integrado", monto: datos.impuesto, nivel: "nacional", normativa: MONOTRIBUTO_NORMATIVA },
+        { nombre: "Aporte jubilatorio (SIPA)", monto: datos.jubilacion, nivel: "nacional", normativa: "Ley 24.241" },
+        { nombre: "Obra social", monto: datos.obraSocial, nivel: "nacional", normativa: "Ley 23.660" },
+      ],
     };
   }
 
@@ -62,9 +60,9 @@ export function calcularCargaSueldo(sueldo) {
       contribuciones_patronales: 0,
       ganancias: 0,
       total_mensual: aportes,
-      detalle: {
-        "Aportes autónomo (27%)": aportes,
-      },
+      items: [
+        { nombre: "Aportes autónomo (27%)", monto: aportes, tasa: 0.27, nivel: "nacional", normativa: "Ley 24.241, Art. 10" },
+      ],
     };
   }
 
@@ -76,29 +74,59 @@ export function calcularCargaSueldo(sueldo) {
     bruto = monto;
   }
 
-  const aportesEmpleado = bruto * TASA_TOTAL_APORTES_EMPLEADO;
-  const contribucionesPatronales = bruto * TASA_TOTAL_CONTRIBUCIONES_PATRONALES;
   const ganancias = calcularGanancias4ta(bruto);
   const costoTotalEmpleador = bruto * (1 + TASA_TOTAL_CONTRIBUCIONES_PATRONALES);
+
+  // Build itemized list
+  const items = [];
+
+  // Aportes del empleado
+  for (const [, data] of Object.entries(APORTES_EMPLEADO)) {
+    items.push({
+      nombre: data.nombre,
+      monto: bruto * data.tasa,
+      tasa: data.tasa,
+      nivel: data.nivel,
+      normativa: data.normativa,
+      grupo: "empleado",
+    });
+  }
+
+  // Ganancias
+  if (ganancias > 0) {
+    items.push({
+      nombre: GANANCIAS_4TA.nombre,
+      monto: ganancias,
+      nivel: "nacional",
+      normativa: GANANCIAS_4TA.normativa,
+      grupo: "empleado",
+    });
+  }
+
+  // Contribuciones patronales
+  for (const [, data] of Object.entries(CONTRIBUCIONES_PATRONALES)) {
+    items.push({
+      nombre: data.nombre,
+      monto: bruto * data.tasa,
+      tasa: data.tasa,
+      nivel: data.nivel,
+      normativa: data.normativa,
+      nota: data.nota,
+      grupo: "patronal",
+    });
+  }
+
+  const totalAportes = Object.values(APORTES_EMPLEADO).reduce((s, d) => s + bruto * d.tasa, 0) + ganancias;
+  const totalPatronal = Object.values(CONTRIBUCIONES_PATRONALES).reduce((s, d) => s + bruto * d.tasa, 0);
 
   return {
     bruto,
     costoTotalEmpleador,
-    aportes_empleado: aportesEmpleado,
-    contribuciones_patronales: contribucionesPatronales,
+    aportes_empleado: totalAportes,
+    contribuciones_patronales: totalPatronal,
     ganancias,
-    total_mensual: aportesEmpleado + contribucionesPatronales + ganancias,
-    detalle: {
-      "Jubilación (empleado)": bruto * APORTES_EMPLEADO.jubilacion,
-      "Obra social": bruto * APORTES_EMPLEADO.obraSocial,
-      "PAMI": bruto * APORTES_EMPLEADO.pami,
-      "ANSSAL": bruto * APORTES_EMPLEADO.anssal,
-      "Jubilación (patronal)": bruto * CONTRIBUCIONES_PATRONALES.jubilacion,
-      "Obra social (patronal)": bruto * CONTRIBUCIONES_PATRONALES.obraSocial,
-      ART: bruto * CONTRIBUCIONES_PATRONALES.art,
-      Asignaciones: bruto * CONTRIBUCIONES_PATRONALES.asignaciones,
-      ...(ganancias > 0 ? { "Ganancias 4ta cat.": ganancias } : {}),
-    },
+    total_mensual: totalAportes + totalPatronal,
+    items,
   };
 }
 
