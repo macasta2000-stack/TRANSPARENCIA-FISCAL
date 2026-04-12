@@ -147,6 +147,56 @@ export const IMPUESTOS_SERVICIOS_REGULADOS = {
   },
 };
 
+// Fondo Nacional de Empleo (lo paga el empleador, falta en CONTRIBUCIONES_PATRONALES original)
+// Ya incluido vía la tasa total, pero lo explicito para transparencia
+export const FONDO_NACIONAL_EMPLEO = {
+  tasa: 0.0089,
+  nombre: "Fondo Nacional de Empleo",
+  normativa: "Ley 24.013, Art. 145",
+  nivel: "nacional",
+};
+
+// =====================================================
+// SIRCREB — Percepciones bancarias de IIBB
+// Sistema de Recaudación y Control de Acreditaciones Bancarias
+// Los bancos retienen automáticamente un % sobre créditos bancarios.
+// Para empleados en dependencia es a cuenta de IIBB (pero genera costo financiero).
+// Para monotributistas/autónomos se computa como pago a cuenta.
+// =====================================================
+export const SIRCREB = {
+  nombre: "SIRCREB (Percepción bancaria IIBB)",
+  normativa: "RG (CA) 1/2019, Convenio Multilateral — Sistema SIRCREB",
+  nota: "Los bancos retienen automáticamente sobre cada crédito. La alícuota varía por contribuyente y jurisdicción.",
+  // Alícuotas generales por provincia (pueden variar por contribuyente)
+  alicuotas: {
+    CABA: { tasa: 0.012, nombre: "SIRCREB CABA", normativa: "AGIP — Padrón SIRCREB" },
+    BUENOS_AIRES: { tasa: 0.02, nombre: "SIRCREB Buenos Aires", normativa: "ARBA — Padrón SIRCREB", nota: "PBA tiene las percepciones más agresivas" },
+    CORDOBA: { tasa: 0.018, nombre: "SIRCREB Córdoba", normativa: "DGR Córdoba — Padrón SIRCREB" },
+    SANTA_FE: { tasa: 0.015, nombre: "SIRCREB Santa Fe", normativa: "API Santa Fe — Padrón SIRCREB" },
+    MENDOZA: { tasa: 0.015, nombre: "SIRCREB Mendoza", normativa: "ATM Mendoza — Padrón SIRCREB" },
+    TUCUMAN: { tasa: 0.02, nombre: "SIRCREB Tucumán", normativa: "DGR Tucumán — Padrón SIRCREB" },
+    ENTRE_RIOS: { tasa: 0.018, nombre: "SIRCREB Entre Ríos", normativa: "ATER — Padrón SIRCREB" },
+    SALTA: { tasa: 0.015, nombre: "SIRCREB Salta", normativa: "DGR Salta — Padrón SIRCREB" },
+    MISIONES: { tasa: 0.02, nombre: "SIRCREB Misiones", normativa: "DGR Misiones — Padrón SIRCREB" },
+    CHACO: { tasa: 0.018, nombre: "SIRCREB Chaco", normativa: "ATP Chaco — Padrón SIRCREB" },
+    CORRIENTES: { tasa: 0.015, nombre: "SIRCREB Corrientes", normativa: "DGR Corrientes — Padrón SIRCREB" },
+    SANTIAGO_DEL_ESTERO: { tasa: 0.02, nombre: "SIRCREB Santiago del Estero", normativa: "DGR SdE — Padrón SIRCREB" },
+    SAN_JUAN: { tasa: 0.015, nombre: "SIRCREB San Juan", normativa: "DGR San Juan — Padrón SIRCREB" },
+    SAN_LUIS: { tasa: 0.012, nombre: "SIRCREB San Luis", normativa: "DPIP San Luis — Padrón SIRCREB" },
+    JUJUY: { tasa: 0.015, nombre: "SIRCREB Jujuy", normativa: "DPR Jujuy — Padrón SIRCREB" },
+    RIO_NEGRO: { tasa: 0.015, nombre: "SIRCREB Río Negro", normativa: "ART Río Negro — Padrón SIRCREB" },
+    NEUQUEN: { tasa: 0.015, nombre: "SIRCREB Neuquén", normativa: "DPR Neuquén — Padrón SIRCREB" },
+    FORMOSA: { tasa: 0.02, nombre: "SIRCREB Formosa", normativa: "DGR Formosa — Padrón SIRCREB" },
+    CHUBUT: { tasa: 0.015, nombre: "SIRCREB Chubut", normativa: "DGR Chubut — Padrón SIRCREB" },
+    LA_PAMPA: { tasa: 0.012, nombre: "SIRCREB La Pampa", normativa: "DGR La Pampa — Padrón SIRCREB" },
+    CATAMARCA: { tasa: 0.018, nombre: "SIRCREB Catamarca", normativa: "AGIP Catamarca — Padrón SIRCREB" },
+    LA_RIOJA: { tasa: 0.015, nombre: "SIRCREB La Rioja", normativa: "DGIP La Rioja — Padrón SIRCREB" },
+    SANTA_CRUZ: { tasa: 0.012, nombre: "SIRCREB Santa Cruz", normativa: "ASIP Santa Cruz — Padrón SIRCREB" },
+    TIERRA_DEL_FUEGO: { tasa: 0.008, nombre: "SIRCREB Tierra del Fuego", normativa: "AREF TdF — Padrón SIRCREB" },
+  },
+  auditado: false,
+};
+
 // Totales precalculados para comodidad
 export const TASA_TOTAL_APORTES_EMPLEADO = Object.values(APORTES_EMPLEADO).reduce(
   (sum, v) => sum + v.tasa, 0

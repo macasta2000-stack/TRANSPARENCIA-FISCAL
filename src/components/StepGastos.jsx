@@ -11,6 +11,7 @@ export default function StepGastos({
   inmueble,
   setInmueble,
   provincia,
+  municipio,
 }) {
   return (
     <div className="step step-gastos">
@@ -28,6 +29,7 @@ export default function StepGastos({
             value={gastos[cat.id]}
             onChange={(val) => setGastos({ [cat.id]: val })}
             provincia={provincia}
+            municipio={municipio}
           >
             {cat.esAlquiler && gastos.alquiler && parseFloat(gastos.alquiler) > 0 && (
               <label className="checkbox-row">

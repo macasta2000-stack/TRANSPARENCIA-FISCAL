@@ -6,36 +6,62 @@ import {
   IMPUESTOS_SERVICIOS_REGULADOS,
 } from "../data/impuestos-nacionales";
 import { IIBB } from "../data/impuestos-provinciales";
-import { TASAS_MUNICIPALES } from "../data/impuestos-municipales";
+import { getTasasMunicipales } from "../data/impuestos-municipales";
 import { CATEGORIAS_GASTO } from "../data/categorias-gasto";
 
-function calcularNaftaDetallado(gasto) {
+function calcularNaftaDetallado(gasto, provincia, municipio) {
   const cfg = IMPUESTOS_COMBUSTIBLES.nafta_super;
-  // ~55% of pump price is taxes. Break it down proportionally.
-  const totalImpuestos = gasto * cfg.porcentajeEstimadoTotal;
-  const precioBase = gasto - totalImpuestos;
+  const muniData = getTasasMunicipales(provincia, municipio);
 
-  // Proportional breakdown of the total tax component
-  const ivaEstimado = precioBase * cfg.iva.tasa;
-  const restanteEspecificos = totalImpuestos - ivaEstimado;
+  // IIBB provincial sobre combustibles
+  const iibbData = IIBB[provincia]?.combustibles;
+  const tasaIIBB = iibbData?.tasa || 0.035;
+  // Tasa vial MUNICIPAL (varía 0-3% por municipio, NO es provincial)
+  const tasaVial = muniData.tasa_vial || 0;
+  // TISH municipal sobre la estación de servicio (generalmente bajo, ~0.1-1%)
+  const tasaTISH = muniData.tish || 0.01;
+
+  // Carga real de nafta: 35-40% del precio final es impuestos
+  // Desglose: IVA ~14%, ICL ~16%, CO2 ~1%, IIBB ~3%, Vial ~0-3%, Infraestructura ~2%
+  const porcentajeNacionalEspecificos = 0.19; // ICL + CO2 + infraestructura + gasoil como % del precio base
+  const factorTotal = (1 + cfg.iva.tasa) * (1 + porcentajeNacionalEspecificos) * (1 + tasaIIBB) * (1 + tasaVial);
+  const precioBase = gasto / factorTotal;
+  const totalImpuestos = gasto - precioBase;
+
+  const especificosNacionales = precioBase * porcentajeNacionalEspecificos;
+
+  const items = [
+    { nombre: cfg.iva.nombre, monto: precioBase * cfg.iva.tasa, tasa: cfg.iva.tasa, nivel: "nacional", normativa: cfg.iva.normativa },
+    { nombre: cfg.icl.nombre, monto: especificosNacionales * 0.50, nivel: "nacional", normativa: cfg.icl.normativa },
+    { nombre: cfg.idcco2.nombre, monto: especificosNacionales * 0.06, nivel: "nacional", normativa: cfg.idcco2.normativa },
+    { nombre: cfg.tasaInfraestructura.nombre, monto: especificosNacionales * 0.26, nivel: "nacional", normativa: cfg.tasaInfraestructura.normativa },
+    { nombre: cfg.tasaGasoil.nombre, monto: especificosNacionales * 0.18, nivel: "nacional", normativa: cfg.tasaGasoil.normativa },
+    { nombre: iibbData?.nombre || "IIBB - Combustibles", monto: precioBase * tasaIIBB, tasa: tasaIIBB, nivel: "provincial", normativa: iibbData?.normativa || "Ley impositiva provincial" },
+  ];
+
+  // Tasa vial municipal
+  if (tasaVial > 0) {
+    items.push({
+      nombre: muniData.tasa_vial_nombre || "Tasa Vial municipal",
+      monto: precioBase * tasaVial,
+      tasa: tasaVial,
+      nivel: "municipal",
+      normativa: muniData.tasa_vial_normativa || "Ordenanza municipal",
+    });
+  }
 
   return {
     total: totalImpuestos,
-    items: [
-      { nombre: cfg.iva.nombre, monto: ivaEstimado, nivel: "nacional", normativa: cfg.iva.normativa },
-      { nombre: cfg.icl.nombre, monto: restanteEspecificos * 0.40, nivel: "nacional", normativa: cfg.icl.normativa },
-      { nombre: cfg.idcco2.nombre, monto: restanteEspecificos * 0.25, nivel: "nacional", normativa: cfg.idcco2.normativa },
-      { nombre: cfg.tasaInfraestructura.nombre, monto: restanteEspecificos * 0.20, nivel: "nacional", normativa: cfg.tasaInfraestructura.normativa },
-      { nombre: cfg.tasaGasoil.nombre, monto: restanteEspecificos * 0.15, nivel: "nacional", normativa: cfg.tasaGasoil.normativa },
-    ],
-    nota: "En cada litro de nafta, más de la mitad es impuesto.",
+    items,
+    nota: `~${Math.round((totalImpuestos / gasto) * 100)}% del precio de bomba son impuestos y tasas.${tasaVial > 0 ? ` Incluye Tasa Vial municipal (${(tasaVial * 100).toFixed(1)}%).` : ""}`,
   };
 }
 
-function calcularTelecomDetallado(gasto, provincia) {
+function calcularTelecomDetallado(gasto, provincia, municipio) {
   const iibbData = IIBB[provincia]?.telecom;
   const tasaIIBB = iibbData?.tasa || 0.04;
-  const tasasMunic = TASAS_MUNICIPALES[provincia]?.total_estimado || 0.005;
+  const muniData = getTasasMunicipales(provincia, municipio);
+  const tasaTISH = muniData.tish || 0.005;
 
   const factorTotal =
     (1 + IVA.general.tasa) *
@@ -43,7 +69,7 @@ function calcularTelecomDetallado(gasto, provincia) {
     (1 + tasaIIBB) *
     (1 + IMPUESTOS_TELECOM.tasaCNC.tasa) *
     (1 + IMPUESTOS_TELECOM.fondoServicioUniversal.tasa) *
-    (1 + tasasMunic);
+    (1 + tasaTISH);
 
   const precioBase = gasto / factorTotal;
   const totalImpuestos = gasto - precioBase;
@@ -53,7 +79,7 @@ function calcularTelecomDetallado(gasto, provincia) {
   const iibbM = precioBase * tasaIIBB;
   const cncM = precioBase * IMPUESTOS_TELECOM.tasaCNC.tasa;
   const fsuM = precioBase * IMPUESTOS_TELECOM.fondoServicioUniversal.tasa;
-  const muniM = precioBase * tasasMunic;
+  const muniM = precioBase * tasaTISH;
 
   return {
     total: totalImpuestos,
@@ -63,13 +89,12 @@ function calcularTelecomDetallado(gasto, provincia) {
       { nombre: IMPUESTOS_TELECOM.tasaCNC.nombre, monto: cncM, tasa: IMPUESTOS_TELECOM.tasaCNC.tasa, nivel: "nacional", normativa: IMPUESTOS_TELECOM.tasaCNC.normativa },
       { nombre: IMPUESTOS_TELECOM.fondoServicioUniversal.nombre, monto: fsuM, tasa: IMPUESTOS_TELECOM.fondoServicioUniversal.tasa, nivel: "nacional", normativa: IMPUESTOS_TELECOM.fondoServicioUniversal.normativa },
       { nombre: iibbData?.nombre || "IIBB Telecom", monto: iibbM, tasa: tasaIIBB, nivel: "provincial", normativa: iibbData?.normativa || "" },
-      ...(muniM > 0 ? [{ nombre: "Tasas municipales", monto: muniM, tasa: tasasMunic, nivel: "municipal", normativa: TASAS_MUNICIPALES[provincia]?.fuente || "" }] : []),
+      ...(muniM > 0 ? [{ nombre: muniData.tish_nombre || "TISH municipal", monto: muniM, tasa: tasaTISH, nivel: "municipal", normativa: muniData.tish_normativa || "" }] : []),
     ],
   };
 }
 
-function calcularServiciosReguladosDetallado(gasto, provincia) {
-  // Servicios públicos (luz+gas+agua) — weighted average of their specific tax structures
+function calcularServiciosReguladosDetallado(gasto, provincia, municipio) {
   const promedio = IMPUESTOS_SERVICIOS_REGULADOS;
   const porcentajePonderado =
     (promedio.electricidad.porcentajeImpuestosEstimado * 0.5) +
@@ -83,7 +108,6 @@ function calcularServiciosReguladosDetallado(gasto, provincia) {
   const tasaIIBB = iibbData?.tasa || 0.03;
   const iibbMonto = precioBase * tasaIIBB;
 
-  // Build items from the main components
   const items = [
     { nombre: "IVA 10.5% (reducido servicios)", monto: precioBase * IVA.reducido.tasa, tasa: IVA.reducido.tasa, nivel: "nacional", normativa: IVA.reducido.normativa },
     { nombre: "Contribución municipal (alumbrado)", monto: precioBase * 0.04, tasa: 0.04, nivel: "municipal", normativa: "Ordenanzas municipales" },
@@ -99,7 +123,7 @@ function calcularServiciosReguladosDetallado(gasto, provincia) {
   };
 }
 
-function calcularCategoriaEstandar(monto, categoria, provincia) {
+function calcularCategoriaEstandar(monto, categoria, provincia, municipio) {
   const tasaIVA = categoria.tipoIVA === "general" ? IVA.general.tasa :
                   categoria.tipoIVA === "reducido" ? IVA.reducido.tasa : 0;
   const ivaData = categoria.tipoIVA === "general" ? IVA.general :
@@ -107,10 +131,17 @@ function calcularCategoriaEstandar(monto, categoria, provincia) {
 
   const iibbData = categoria.iibbKey ? IIBB[provincia]?.[categoria.iibbKey] : null;
   const tasaIIBB = iibbData?.tasa || 0;
-  const tasasMunic = TASAS_MUNICIPALES[provincia]?.total_estimado || 0.005;
+
+  // Usar TISH real por municipio — y TISH diferenciado para supermercados
+  const muniData = getTasasMunicipales(provincia, municipio);
+  const esSupermercado = categoria.id === "supermercado";
+  const tasaTISH = esSupermercado ? (muniData.tish_super || muniData.tish || 0.01) : (muniData.tish || 0.01);
+  const tishNombre = esSupermercado ? (muniData.tish_super_nombre || muniData.tish_nombre || "TISH") : (muniData.tish_nombre || "TISH");
+  const tishNormativa = esSupermercado ? (muniData.tish_super_normativa || muniData.tish_normativa || "") : (muniData.tish_normativa || "");
+
   const tasaDC = IMPUESTO_DEBITOS_CREDITOS.tasa;
 
-  const factorTotal = (1 + tasaIVA) * (1 + tasaIIBB) * (1 + tasasMunic) * (1 + tasaDC);
+  const factorTotal = (1 + tasaIVA) * (1 + tasaIIBB) * (1 + tasaTISH) * (1 + tasaDC);
   const precioBase = monto / factorTotal;
   const totalImpuestos = monto - precioBase;
 
@@ -136,55 +167,15 @@ function calcularCategoriaEstandar(monto, categoria, provincia) {
     });
   }
 
-  if (tasasMunic > 0) {
-    const muniData = TASAS_MUNICIPALES[provincia];
-    // Add individual municipal taxes if available
-    if (muniData?.tish?.tasa > 0) {
-      items.push({
-        nombre: muniData.tish.nombre,
-        monto: precioBase * muniData.tish.tasa,
-        tasa: muniData.tish.tasa,
-        nivel: "municipal",
-        normativa: muniData.tish.normativa,
-      });
-    }
-    if (muniData?.alumbrado?.tasa > 0) {
-      items.push({
-        nombre: muniData.alumbrado.nombre,
-        monto: precioBase * muniData.alumbrado.tasa,
-        tasa: muniData.alumbrado.tasa,
-        nivel: "municipal",
-        normativa: muniData.alumbrado.normativa,
-      });
-    }
-    if (muniData?.drei?.tasa > 0) {
-      items.push({
-        nombre: muniData.drei.nombre,
-        monto: precioBase * muniData.drei.tasa,
-        tasa: muniData.drei.tasa,
-        nivel: "municipal",
-        normativa: muniData.drei.normativa,
-      });
-    }
-    if (muniData?.publicidad?.tasa > 0) {
-      items.push({
-        nombre: muniData.publicidad.nombre,
-        monto: precioBase * muniData.publicidad.tasa,
-        tasa: muniData.publicidad.tasa,
-        nivel: "municipal",
-        normativa: muniData.publicidad.normativa,
-      });
-    }
-    // If no individual items found, show aggregate
-    if (items.filter(i => i.nivel === "municipal").length === 0) {
-      items.push({
-        nombre: "Tasas municipales",
-        monto: precioBase * tasasMunic,
-        tasa: tasasMunic,
-        nivel: "municipal",
-        normativa: muniData?.fuente || "Ordenanzas municipales",
-      });
-    }
+  // TISH municipal real
+  if (tasaTISH > 0) {
+    items.push({
+      nombre: tishNombre,
+      monto: precioBase * tasaTISH,
+      tasa: tasaTISH,
+      nivel: "municipal",
+      normativa: tishNormativa,
+    });
   }
 
   items.push({
@@ -198,33 +189,33 @@ function calcularCategoriaEstandar(monto, categoria, provincia) {
   return { total: totalImpuestos, items };
 }
 
-export function calcularImpuestoCategoriaDetallado(categoriaId, monto, provincia) {
+export function calcularImpuestoCategoriaDetallado(categoriaId, monto, provincia, municipio) {
   if (!monto || monto <= 0) return { total: 0, items: [] };
 
   const categoria = CATEGORIAS_GASTO.find((c) => c.id === categoriaId);
   if (!categoria) return { total: 0, items: [] };
 
-  if (categoria.esNafta) return calcularNaftaDetallado(monto);
-  if (categoria.esTelecom) return calcularTelecomDetallado(monto, provincia);
-  if (categoria.tipoIVA === "servicios_regulados") return calcularServiciosReguladosDetallado(monto, provincia);
+  if (categoria.esNafta) return calcularNaftaDetallado(monto, provincia, municipio);
+  if (categoria.esTelecom) return calcularTelecomDetallado(monto, provincia, municipio);
+  if (categoria.tipoIVA === "servicios_regulados") return calcularServiciosReguladosDetallado(monto, provincia, municipio);
   if (categoria.esAlquiler) return { total: 0, items: [] };
 
-  return calcularCategoriaEstandar(monto, categoria, provincia);
+  return calcularCategoriaEstandar(monto, categoria, provincia, municipio);
 }
 
-// Backward compat for CategorySlider
-export function calcularImpuestoCategoria(categoriaId, monto, provincia) {
-  return calcularImpuestoCategoriaDetallado(categoriaId, monto, provincia).total;
+// Backward compat
+export function calcularImpuestoCategoria(categoriaId, monto, provincia, municipio) {
+  return calcularImpuestoCategoriaDetallado(categoriaId, monto, provincia, municipio).total;
 }
 
-export function calcularCargaConsumo(gastos, provincia) {
+export function calcularCargaConsumo(gastos, provincia, municipio) {
   const por_categoria = {};
   let totalMensual = 0;
   const allItems = [];
 
   for (const cat of CATEGORIAS_GASTO) {
     const monto = gastos[cat.id] || 0;
-    const detalle = calcularImpuestoCategoriaDetallado(cat.id, monto, provincia);
+    const detalle = calcularImpuestoCategoriaDetallado(cat.id, monto, provincia, municipio);
     por_categoria[cat.id] = {
       monto,
       impuesto: detalle.total,

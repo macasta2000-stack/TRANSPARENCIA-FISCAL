@@ -1,12 +1,6 @@
-const PASOS = [
-  { num: 1, label: "Sueldo" },
-  { num: 2, label: "Ubicación" },
-  { num: 3, label: "Gastos" },
-  { num: 4, label: "Resultado" },
-];
-
-export default function ProgressBar({ paso }) {
-  const progreso = ((paso - 1) / (PASOS.length - 1)) * 100;
+export default function ProgressBar({ paso, totalPasos, labels }) {
+  const steps = labels.map((label, i) => ({ num: i + 1, label }));
+  const progreso = totalPasos > 1 ? ((paso - 1) / (totalPasos - 1)) * 100 : 0;
 
   return (
     <div className="progress-bar">
@@ -14,7 +8,7 @@ export default function ProgressBar({ paso }) {
         <div className="progress-fill" style={{ width: `${progreso}%` }} />
       </div>
       <div className="progress-steps">
-        {PASOS.map((p) => (
+        {steps.map((p) => (
           <div
             key={p.num}
             className={`progress-step ${paso >= p.num ? "active" : ""} ${

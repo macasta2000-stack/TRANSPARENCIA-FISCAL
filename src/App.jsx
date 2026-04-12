@@ -1,5 +1,6 @@
 import { useCalculadora } from "./hooks/useCalculadora";
 import ProgressBar from "./components/ProgressBar";
+import StepModo from "./components/StepModo";
 import StepSueldo from "./components/StepSueldo";
 import StepUbicacion from "./components/StepUbicacion";
 import StepGastos from "./components/StepGastos";
@@ -9,10 +10,17 @@ export default function App() {
   const calc = useCalculadora();
 
   const renderStep = () => {
-    switch (calc.paso) {
-      case 1:
-        return <StepSueldo sueldo={calc.sueldo} setSueldo={calc.setSueldo} />;
-      case 2:
+    switch (calc.pasoActual) {
+      case "modo":
+        return (
+          <StepModo
+            modo={calc.modo}
+            setModo={calc.setModo}
+          />
+        );
+      case "sueldo":
+        return <StepSueldo sueldo={calc.sueldo} setSueldo={calc.setSueldo} provincia={calc.provincia} />;
+      case "ubicacion":
         return (
           <StepUbicacion
             provincia={calc.provincia}
@@ -20,7 +28,7 @@ export default function App() {
             setUbicacion={calc.setUbicacion}
           />
         );
-      case 3:
+      case "gastos":
         return (
           <StepGastos
             gastos={calc.gastos}
@@ -30,13 +38,15 @@ export default function App() {
             inmueble={calc.inmueble}
             setInmueble={calc.setInmueble}
             provincia={calc.provincia}
+            municipio={calc.municipio}
           />
         );
-      case 4:
+      case "resultado":
         return (
           <ResultadoFinal
             resultado={calc.resultado}
             provincia={calc.provincia}
+            modo={calc.modo}
             reiniciar={calc.reiniciar}
           />
         );
@@ -45,7 +55,21 @@ export default function App() {
     }
   };
 
-  const isResultado = calc.paso >= 4;
+  const isResultado = calc.pasoActual === "resultado";
+  const isModo = calc.pasoActual === "modo";
+
+  // Progress bar step labels depend on mode
+  const stepLabels = calc.pasos
+    ? calc.pasos.filter(p => p !== "modo").map(p => {
+        switch (p) {
+          case "sueldo": return "SUELDO";
+          case "ubicacion": return "UBICACIÓN";
+          case "gastos": return "GASTOS";
+          case "resultado": return "RESULTADO";
+          default: return p.toUpperCase();
+        }
+      })
+    : [];
 
   return (
     <div className="app">
@@ -54,11 +78,17 @@ export default function App() {
           HASTA CUÁNDO
         </h1>
         <p className="tagline">
-          Calculá hasta cuándo del año trabajás para el Estado.
+          Calculá hasta cuándo del año trabajás para el sistema.
         </p>
       </header>
 
-      {!isResultado && <ProgressBar paso={calc.paso} />}
+      {!isResultado && !isModo && calc.modo && (
+        <ProgressBar
+          paso={calc.pasoNumero}
+          totalPasos={calc.totalPasos}
+          labels={stepLabels}
+        />
+      )}
 
       <main className="main">
         <div className="step-container">{renderStep()}</div>
@@ -67,7 +97,7 @@ export default function App() {
       {!isResultado && (
         <footer className="step-footer">
           <div className="step-nav">
-            {calc.paso > 1 && (
+            {!isModo && (
               <button className="btn btn-secondary" onClick={calc.anterior}>
                 ANTERIOR
               </button>
@@ -77,7 +107,7 @@ export default function App() {
               onClick={calc.siguiente}
               disabled={!calc.puedeAvanzar}
             >
-              {calc.paso === 3 ? "CALCULAR" : "SIGUIENTE"}
+              {calc.isLastStep ? "CALCULAR" : "SIGUIENTE"}
             </button>
           </div>
           <p className="privacy-note">

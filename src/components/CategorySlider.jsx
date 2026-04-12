@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { calcularImpuestoCategoriaDetallado } from "../utils/calcularConsumo";
 
 function formatearPesos(n) {
@@ -17,9 +16,9 @@ const NIVEL_COLORS = {
 };
 
 const NIVEL_LABELS = {
-  nacional: "NACIÓN",
-  provincial: "PROVINCIA",
-  municipal: "MUNICIPIO",
+  nacional: "Nación",
+  provincial: "Provincia",
+  municipal: "Municipio",
 };
 
 export default function CategorySlider({
@@ -27,11 +26,12 @@ export default function CategorySlider({
   value,
   onChange,
   provincia,
+  municipio,
   children,
 }) {
-  const [expanded, setExpanded] = useState(false);
   const monto = parseFloat(value) || 0;
-  const detalle = calcularImpuestoCategoriaDetallado(categoria.id, monto, provincia);
+  const detalle = calcularImpuestoCategoriaDetallado(categoria.id, monto, provincia, municipio);
+  const hasDetail = detalle.total > 0 && detalle.items.length > 0;
 
   return (
     <div className="category-slider">
@@ -39,57 +39,54 @@ export default function CategorySlider({
         <span className="category-emoji">{categoria.emoji}</span>
         <span className="category-label">{categoria.label}</span>
         {detalle.total > 0 && (
-          <button
-            className="category-tax"
-            onClick={() => setExpanded(!expanded)}
-            title="Ver desglose de impuestos"
-          >
+          <span className="category-tax-badge">
             ~{formatearPesos(detalle.total)} en imp.
-            <span className="expand-arrow">{expanded ? "▾" : "▸"}</span>
-          </button>
+          </span>
         )}
       </div>
-      <div className="category-input-row">
-        <span className="input-prefix">$</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          className="category-input"
-          placeholder={categoria.placeholder}
-          value={value || ""}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^0-9]/g, "");
-            onChange(raw);
-          }}
-        />
-      </div>
 
-      {expanded && detalle.items.length > 0 && (
-        <div className="category-detail">
-          {detalle.items.map((item, i) => (
-            <div key={i} className="category-detail-row">
-              <span
-                className="detail-nivel-dot"
-                style={{ background: NIVEL_COLORS[item.nivel] }}
-                title={NIVEL_LABELS[item.nivel]}
-              />
-              <span className="detail-nombre">
-                {item.nombre}
-                {item.tasa ? ` (${(item.tasa * 100).toFixed(1)}%)` : ""}
-              </span>
-              <span className="detail-monto">{formatearPesos(item.monto)}</span>
-            </div>
-          ))}
-          {detalle.nota && (
-            <p className="category-detail-nota">{detalle.nota}</p>
-          )}
-          <div className="category-detail-legend">
-            <span><span className="dot" style={{ background: NIVEL_COLORS.nacional }} /> Nación</span>
-            <span><span className="dot" style={{ background: NIVEL_COLORS.provincial }} /> Provincia</span>
-            <span><span className="dot" style={{ background: NIVEL_COLORS.municipal }} /> Municipio</span>
+      <div className={`category-body ${hasDetail ? "has-detail" : ""}`}>
+        {/* Left: input */}
+        <div className="category-input-col">
+          <div className="category-input-row">
+            <span className="input-prefix">$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              className="category-input"
+              placeholder={categoria.placeholder}
+              value={value || ""}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, "");
+                onChange(raw);
+              }}
+            />
           </div>
         </div>
-      )}
+
+        {/* Right: always-visible tax breakdown */}
+        {hasDetail && (
+          <div className="category-detail-col">
+            {detalle.items.map((item, i) => (
+              <div key={i} className="cat-tax-row">
+                <span
+                  className="cat-tax-dot"
+                  style={{ background: NIVEL_COLORS[item.nivel] }}
+                  title={NIVEL_LABELS[item.nivel]}
+                />
+                <span className="cat-tax-name">
+                  {item.nombre}
+                  {item.tasa ? ` (${(item.tasa * 100).toFixed(1)}%)` : ""}
+                </span>
+                <span className="cat-tax-amount">{formatearPesos(item.monto)}</span>
+              </div>
+            ))}
+            {detalle.nota && (
+              <p className="cat-tax-nota">{detalle.nota}</p>
+            )}
+          </div>
+        )}
+      </div>
       {children}
     </div>
   );
