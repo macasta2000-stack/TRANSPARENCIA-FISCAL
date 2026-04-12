@@ -127,12 +127,6 @@ export function calcularTaxFreedomDay({ sueldo, provincia, municipio, gastos, au
     cargaInmuebleResult.total;
 
   const ingresoBrutoTotal = calcularIngresoBrutoTotal(sueldo, provincia);
-  // If no salary (gastos-only mode), calculate percentage based on total spending
-  const totalGasto = Object.values(gastos || {}).reduce((s, v) => s + (typeof v === "number" ? v : 0), 0);
-  const base = ingresoBrutoTotal > 0 ? ingresoBrutoTotal : totalGasto > 0 ? totalGasto : 1;
-  const porcentaje = Math.min(totalImpuestosMensualConConsumo / base, 0.99);
-  const diaDelAnio = Math.round(365 * porcentaje);
-  const taxFreedomDay = calcularFecha(diaDelAnio);
 
   // Si hay sueldo pero NO hay gastos cargados, estimamos la carga de consumo
   // para que el desglose por nivel refleje la realidad completa.
@@ -140,7 +134,6 @@ export function calcularTaxFreedomDay({ sueldo, provincia, municipio, gastos, au
   let consumoEstimado = { items: [], total: 0 };
 
   if (cargaSueldo.bruto > 0 && !tieneGastos) {
-    // Estimar neto de bolsillo para calcular consumo
     const deduccionesEmpleado = cargaSueldo.aportes_empleado + cargaSueldo.sindical;
     const netoEstimado = cargaSueldo.bruto - deduccionesEmpleado;
     consumoEstimado = estimarCargaConsumoSobreNeto(netoEstimado, provincia, municipio);
@@ -149,6 +142,13 @@ export function calcularTaxFreedomDay({ sueldo, provincia, municipio, gastos, au
   const totalImpuestosMensualConConsumo = tieneGastos
     ? totalImpuestosMensual
     : totalImpuestosMensual + consumoEstimado.total;
+
+  // If no salary (gastos-only mode), calculate percentage based on total spending
+  const totalGasto = Object.values(gastos || {}).reduce((s, v) => s + (typeof v === "number" ? v : 0), 0);
+  const base = ingresoBrutoTotal > 0 ? ingresoBrutoTotal : totalGasto > 0 ? totalGasto : 1;
+  const porcentaje = Math.min(totalImpuestosMensualConConsumo / base, 0.99);
+  const diaDelAnio = Math.round(365 * porcentaje);
+  const taxFreedomDay = calcularFecha(diaDelAnio);
 
   // Aggregate ALL items for government-level breakdown
   const todosLosItems = [
