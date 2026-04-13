@@ -2,6 +2,75 @@
 // IIBB POR PROVINCIA — Con normativa y categoría
 // =====================================================
 
+// =====================================================
+// EXENCIONES Y REGIMENES ESPECIALES POR PROVINCIA
+// Fuentes: Códigos Fiscales provinciales, Infobae, Ámbito, El Economista
+// =====================================================
+export const EXENCIONES_PROVINCIALES = {
+  CABA: {
+    educacion: { exenta: true, normativa: "Código Fiscal CABA, Art. 180" },
+    nota: "Bonificación 100% IIBB reg. simplificado categorías bajas (Ley 6927/2026). Exención temporal ABL gastronomía/hotelería.",
+  },
+  BUENOS_AIRES: {
+    industria: { exenta: false, tasaReducida: 0.015, normativa: "Ley Impositiva PBA — alícuota diferencial industria" },
+    agro: { exenta: true, normativa: "Código Fiscal PBA, Art. 207 — producción primaria exenta" },
+    educacion: { exenta: true, normativa: "Código Fiscal PBA" },
+    nota: "Actividades agropecuarias, mineras y forestales con exenciones o alícuotas diferenciales (Art. 207-208 CF).",
+  },
+  CORDOBA: {
+    industria: { exenta: true, condicion: "Facturación < $2.512M anuales (2025)", normativa: "Ley Tarifaria Córdoba — exención industria" },
+    agro: { exenta: false, tasaReducida: 0.007, normativa: "Ley Tarifaria Córdoba — actividades primarias 0.7%" },
+    educacion: { exenta: true, normativa: "Código Tributario Córdoba" },
+    nota: "Industria exenta si factura menos de $2.512M/año. Actividades primarias entre 0% y 0.7% según municipio.",
+  },
+  SANTA_FE: {
+    industria: { exenta: true, condicion: "Radicada en provincia, sin venta directa al público", normativa: "Código Fiscal Santa Fe — producción primaria e industria exentas" },
+    agro: { exenta: true, normativa: "Código Fiscal Santa Fe" },
+    educacion: { exenta: true, normativa: "Código Fiscal Santa Fe" },
+    nota: "Producción primaria e industria radicada en la provincia están EXENTAS de IIBB, salvo venta directa al público.",
+  },
+  MENDOZA: {
+    educacion: { exenta: true, normativa: "Código Fiscal Mendoza" },
+    nota: "Mendoza redujo tasas municipales recientemente.",
+  },
+  NEUQUEN: {
+    hidrocarburos: { exenta: true, normativa: "Ley Impositiva Neuquén 3479/2026, Art. 7 — exención total IIBB petróleo convencional" },
+    industria: { exenta: false, tasaReducida: 0.015, normativa: "Ley Impositiva Neuquén 3479/2026" },
+    educacion: { exenta: true, normativa: "Código Fiscal Neuquén" },
+    nota: "Neuquén eliminó IIBB para hidrocarburos convencionales. Redujo regalías de 15% a 12% (shale). En 2025 eliminó 45 tasas municipales. IIBB reducido para comercio, servicios, hotelería, salud y educación en 2026.",
+    fuente: "Ámbito Financiero, Diario Neuquino, LM Neuquén",
+  },
+  CHUBUT: {
+    hidrocarburos: { exenta: false, tasaReducida: 0.01, normativa: "Acuerdo Nación-Chubut 2025 — retenciones 0 crudo convencional" },
+    educacion: { exenta: true, normativa: "Código Fiscal Chubut" },
+    nota: "Chubut firmó retenciones 0 para petróleo convencional con Nación. Regalías: 84% al Estado provincial, 16% a municipios.",
+  },
+  SANTA_CRUZ: {
+    hidrocarburos: { exenta: false, tasaReducida: 0.01, normativa: "Acuerdo Nación-Santa Cruz 2025" },
+    educacion: { exenta: true, normativa: "Código Fiscal Santa Cruz" },
+    nota: "Santa Cruz también adhirió a retenciones 0 para crudo convencional. Solo coparticipa 7% de regalías a municipios.",
+  },
+  TIERRA_DEL_FUEGO: {
+    industria: { exenta: true, normativa: "Ley 19.640 — Régimen de Promoción Industrial TdF" },
+    iva: { exenta: true, normativa: "Ley 19.640 — exención IVA para empresas radicadas" },
+    ganancias: { exenta: true, normativa: "Ley 19.640 — exención Ganancias" },
+    importacion: { exenta: true, normativa: "Ley 19.640 — exención derechos de importación" },
+    educacion: { exenta: true, normativa: "Código Fiscal TdF" },
+    nota: "Régimen de Promoción (Ley 19.640): exención de IVA, Ganancias, derechos de importación/exportación e impuestos internos reducidos. Costo fiscal: >USD 1.000M/año. Modificado por Decreto 111/2025.",
+    fuente: "Ley 19.640, Decreto 111/2025, Infobae Mar 2025",
+  },
+  MISIONES: {
+    agro: { exenta: false, tasaReducida: 0.01, normativa: "Código Fiscal Misiones — producción primaria reducida" },
+    educacion: { exenta: true, normativa: "Código Fiscal Misiones" },
+    nota: "Producción primaria con alícuota reducida. Se requiere Certificado de Productor Primario (RG 029/2012).",
+  },
+  SAN_LUIS: {
+    industria: { exenta: false, tasaReducida: 0.01, normativa: "Código Fiscal San Luis — régimen promoción industrial" },
+    educacion: { exenta: true, normativa: "Código Fiscal San Luis" },
+    nota: "San Luis tiene régimen de promoción industrial con alícuotas reducidas.",
+  },
+};
+
 export const IIBB = {
   CABA: {
     auditado: true,

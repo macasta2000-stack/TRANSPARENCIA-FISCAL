@@ -2,7 +2,7 @@ import { calcularCargaSueldo, calcularIngresoBrutoTotal } from "./calcularSueldo
 import { calcularCargaConsumo } from "./calcularConsumo";
 import { calcularAutomotor } from "./calcularAutomotor";
 import { calcularInmueble } from "./calcularInmueble";
-import { IIBB } from "../data/impuestos-provinciales";
+import { IIBB, EXENCIONES_PROVINCIALES } from "../data/impuestos-provinciales";
 import { getTasasMunicipales } from "../data/impuestos-municipales";
 
 const MESES = [
@@ -48,8 +48,14 @@ function agruparPorNivel(items) {
 function estimarCargaConsumoSobreNeto(netoBolsillo, provincia, municipio) {
   if (netoBolsillo <= 0) return { items: [], total: 0 };
 
+  // Verificar exenciones provinciales
+  const exenciones = EXENCIONES_PROVINCIALES[provincia] || {};
+
   // IVA: ~17.4% efectivo sobre el gasto total (21/(1+21) = 17.4% del precio final)
-  const ivaEfectivo = 0.174;
+  // En Tierra del Fuego los productos fabricados localmente tienen IVA exento,
+  // pero los importados del continente sí pagan IVA. Estimamos impacto reducido.
+  const tieneExencionIVA = exenciones.iva?.exenta === true;
+  const ivaEfectivo = tieneExencionIVA ? 0.10 : 0.174; // TdF: ~10% promedio ponderado
   const ivaEstimado = netoBolsillo * ivaEfectivo;
 
   // IIBB cascada: la tasa nominal es 3-5%, pero por efecto cascada
@@ -73,13 +79,15 @@ function estimarCargaConsumoSobreNeto(netoBolsillo, provincia, municipio) {
 
   const items = [
     {
-      nombre: "IVA estimado sobre consumo",
+      nombre: tieneExencionIVA ? "IVA estimado (reducido por Ley 19.640)" : "IVA estimado sobre consumo",
       monto: ivaEstimado,
       tasa: ivaEfectivo,
       nivel: "nacional",
-      normativa: "Ley 23.349 — 21% general (estimado sobre gasto del neto)",
+      normativa: tieneExencionIVA ? "Ley 19.640 — IVA exento para produccion radicada en TdF" : "Ley 23.349 — 21% general",
       grupo: "consumo_estimado",
-      nota: "Estimacion: si gastas todo tu sueldo neto, ~17.4% se va en IVA",
+      nota: tieneExencionIVA
+        ? "Tierra del Fuego: productos fabricados localmente exentos de IVA (Ley 19.640). Productos del continente sí pagan. Estimamos ~10% promedio."
+        : "Estimacion: si gastas todo tu sueldo neto, ~17.4% se va en IVA",
     },
     {
       nombre: "Imp. Debitos/Creditos (al gastar)",

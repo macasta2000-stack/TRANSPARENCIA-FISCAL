@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import ShareCard from "./ShareCard";
 import { generarCard, compartirCard, descargarCard } from "../utils/generarCard";
 import { CUNA_FISCAL_PAISES } from "../data/comparacion-internacional";
-import { IIBB } from "../data/impuestos-provinciales";
+import { IIBB, EXENCIONES_PROVINCIALES } from "../data/impuestos-provinciales";
 
 function fmt(n) {
   if (!n && n !== 0) return "$0";
@@ -358,6 +358,20 @@ export default function ResultadoFinal({ resultado, provincia, modo, reiniciar }
           <div className="datos-estimados-text">
             <strong>Datos provinciales estimados</strong>
             <span>Las alicuotas de IIBB y tasas municipales de esta provincia son estimaciones basadas en codigos fiscales. Los datos auditados contra la ley tarifaria vigente estan disponibles para CABA, Buenos Aires, Cordoba, Santa Fe y Mendoza.</span>
+          </div>
+        </div>
+      )}
+
+      {/* EXENCIONES PROVINCIALES */}
+      {provincia && EXENCIONES_PROVINCIALES[provincia] && (
+        <div className="exenciones-banner">
+          <span className="exenciones-icon">i</span>
+          <div className="exenciones-text">
+            <strong>Exenciones y regimenes especiales en {EXENCIONES_PROVINCIALES[provincia].fuente ? provincia.replace(/_/g, ' ') : "esta provincia"}</strong>
+            <span>{EXENCIONES_PROVINCIALES[provincia].nota}</span>
+            {EXENCIONES_PROVINCIALES[provincia].fuente && (
+              <span className="exenciones-fuente">Fuente: {EXENCIONES_PROVINCIALES[provincia].fuente}</span>
+            )}
           </div>
         </div>
       )}
