@@ -177,12 +177,26 @@ export function calcularCargaSueldo(sueldo, provincia) {
     const datos = MONOTRIBUTO_2026[cat];
     const totalCuota = datos.impuesto + datos.jubilacion + datos.obraSocial;
 
-    // IIBB provincial sobre facturación
-    // SIRCREB es pago a cuenta de IIBB, NO se suma — ya está incluido en el IIBB
-    const iibbMonto = monto * tasaIIBBIngresos;
+    // IIBB para monotributistas: depende de la provincia
+    // - CABA: Monotributo Unificado incluye IIBB (adicional fijo bajo, ~$2.000-$8.000)
+    // - PBA: Régimen Simplificado IIBB (monto fijo por categoría, NO % de facturación)
+    // - Otras provincias: varía, algunas tienen régimen simplificado, otras cobran %
+    // En NINGÚN caso un monotributista paga IIBB como % de su facturación bruta
+    // (eso es para Responsables Inscriptos). Usan montos fijos reducidos.
+    const IIBB_MONO_FIJO = {
+      CABA: { monto: 3500, nombre: "IIBB Monotributo Unificado CABA", normativa: "Ley 6927/2026 — Régimen Simplificado IIBB CABA", nota: "En CABA el IIBB está unificado con el monotributo nacional. Monto fijo bajo." },
+      BUENOS_AIRES: { monto: 5000, nombre: "IIBB Régimen Simplificado PBA", normativa: "RN ARBA — Régimen Simplificado IIBB PBA", nota: "PBA tiene régimen simplificado con monto fijo por categoría." },
+    };
+    const iibbMono = IIBB_MONO_FIJO[provincia];
+    // Para provincias sin régimen simplificado conocido, estimamos un fijo bajo
+    const iibbMonto = iibbMono?.monto || 4000;
+    const iibbNombre = iibbMono?.nombre || "IIBB Régimen Simplificado (estimado)";
+    const iibbNormativa = iibbMono?.normativa || "Código Fiscal provincial — régimen simplificado monotributo";
+    const iibbNota = iibbMono?.nota || "Monotributistas pagan IIBB como monto fijo reducido, NO como % de facturación.";
 
-    // Impuesto al cheque: 0.6% sobre el crédito bancario
-    const chequeMonto = monto * IMPUESTO_DEBITOS_CREDITOS.tasa;
+    // Impuesto al cheque: 0.25% (alícuota reducida para monotributistas, no 0.6%)
+    const tasaChequeReducida = 0.0025;
+    const chequeMonto = monto * tasaChequeReducida;
 
     const totalExtras = iibbMonto + chequeMonto;
 
@@ -191,22 +205,21 @@ export function calcularCargaSueldo(sueldo, provincia) {
       { nombre: "Aporte jubilatorio (SIPA)", monto: datos.jubilacion, nivel: "nacional", normativa: "Ley 24.241", grupo: "empleado" },
       { nombre: "Obra social", monto: datos.obraSocial, nivel: "nacional", normativa: "Ley 23.660", grupo: "empleado" },
       {
-        nombre: iibbServicios?.nombre || "IIBB sobre facturacion",
+        nombre: iibbNombre,
         monto: iibbMonto,
-        tasa: tasaIIBBIngresos,
         nivel: "provincial",
-        normativa: iibbServicios?.normativa || "Codigo Fiscal provincial",
+        normativa: iibbNormativa,
         grupo: "empleado",
-        nota: "Monotributistas pagan IIBB sobre su facturacion mensual. SIRCREB es pago a cuenta (no se suma aparte).",
+        nota: iibbNota,
       },
       {
-        nombre: "Imp. Debitos/Creditos (sobre cobro)",
+        nombre: "Imp. Debitos/Creditos (alicuota reducida mono)",
         monto: chequeMonto,
-        tasa: IMPUESTO_DEBITOS_CREDITOS.tasa,
+        tasa: tasaChequeReducida,
         nivel: "nacional",
-        normativa: IMPUESTO_DEBITOS_CREDITOS.normativa,
+        normativa: IMPUESTO_DEBITOS_CREDITOS.normativa + " — alícuota reducida 0.25% para monotributistas",
         grupo: "empleado",
-        nota: "0.6% sobre cada credito bancario cuando cobras tu facturacion",
+        nota: "Monotributistas tienen alícuota reducida de 0.25% (no 0.6%)",
       },
       ...colegioCalc.items,
     ];
