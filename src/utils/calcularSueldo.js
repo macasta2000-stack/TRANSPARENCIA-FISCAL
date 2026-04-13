@@ -178,17 +178,13 @@ export function calcularCargaSueldo(sueldo, provincia) {
     const totalCuota = datos.impuesto + datos.jubilacion + datos.obraSocial;
 
     // IIBB provincial sobre facturación
+    // SIRCREB es pago a cuenta de IIBB, NO se suma — ya está incluido en el IIBB
     const iibbMonto = monto * tasaIIBBIngresos;
 
-    // SIRCREB: percepción bancaria sobre créditos
-    const sircrebData = SIRCREB.alicuotas[provincia];
-    const tasaSircreb = sircrebData?.tasa || 0.015;
-    const sircrebMonto = monto * tasaSircreb;
-
-    // Impuesto al cheque: 0.6% sobre el crédito (cuando te depositan/cobrás)
+    // Impuesto al cheque: 0.6% sobre el crédito bancario
     const chequeMonto = monto * IMPUESTO_DEBITOS_CREDITOS.tasa;
 
-    const totalExtras = iibbMonto + sircrebMonto + chequeMonto;
+    const totalExtras = iibbMonto + chequeMonto;
 
     const items = [
       { nombre: "Componente impositivo integrado", monto: datos.impuesto, nivel: "nacional", normativa: MONOTRIBUTO_NORMATIVA, grupo: "empleado" },
@@ -201,17 +197,7 @@ export function calcularCargaSueldo(sueldo, provincia) {
         nivel: "provincial",
         normativa: iibbServicios?.normativa || "Codigo Fiscal provincial",
         grupo: "empleado",
-        nota: "Monotributistas pagan IIBB aparte sobre su facturacion mensual",
-      },
-      {
-        nombre: sircrebData?.nombre || "SIRCREB (percepcion bancaria IIBB)",
-        monto: sircrebMonto,
-        tasa: tasaSircreb,
-        nivel: "provincial",
-        normativa: sircrebData?.normativa || SIRCREB.normativa,
-        grupo: "empleado",
-        auditado: false,
-        nota: "Retencion automatica del banco sobre creditos. Se computa como pago a cuenta de IIBB.",
+        nota: "Monotributistas pagan IIBB sobre su facturacion mensual. SIRCREB es pago a cuenta (no se suma aparte).",
       },
       {
         nombre: "Imp. Debitos/Creditos (sobre cobro)",
@@ -238,32 +224,26 @@ export function calcularCargaSueldo(sueldo, provincia) {
   }
 
   if (relacion === "autonomo") {
-    const tasaAutonomo = 0.27;
-    const aportes = monto * tasaAutonomo;
+    // Aportes de autónomos: monto fijo por categoría según tabla AFIP,
+    // NO es un porcentaje del ingreso. Estimamos como ~32% para simplificar
+    // (jubilación 27% + obra social 3% + PAMI 2% sobre la categoría)
+    const tasaAportes = 0.32;
+    const aportes = monto * tasaAportes;
 
-    // Ganancias para autónomos (misma escala que 4ta categoría)
+    // Ganancias para autónomos
     const gananciasAutonomo = calcularGanancias4ta(monto);
 
-    // IIBB sobre facturación
+    // IIBB sobre facturación (SIRCREB es pago a cuenta, NO se suma aparte)
     const iibbMonto = monto * tasaIIBBIngresos;
-
-    // SIRCREB
-    const sircrebData = SIRCREB.alicuotas[provincia];
-    const tasaSircreb = sircrebData?.tasa || 0.015;
-    const sircrebMonto = monto * tasaSircreb;
 
     // Impuesto al cheque
     const chequeMonto = monto * IMPUESTO_DEBITOS_CREDITOS.tasa;
 
-    // IVA: el autónomo RI factura con IVA 21%, lo recauda y lo deposita a AFIP
-    // No es un costo directo, pero sí un costo financiero y administrativo
-    // Lo mostramos como referencia pero NO lo sumamos al total personal
-    const ivaMonto = monto * 0.21;
-
-    const totalExtras = iibbMonto + sircrebMonto + chequeMonto + gananciasAutonomo;
+    const totalExtras = iibbMonto + chequeMonto + gananciasAutonomo;
 
     const items = [
-      { nombre: "Aportes autonomo (27%)", monto: aportes, tasa: 0.27, nivel: "nacional", normativa: "Ley 24.241, Art. 10", grupo: "empleado" },
+      { nombre: "Aportes autonomo (jub 27% + OS 3% + PAMI 2%)", monto: aportes, tasa: tasaAportes, nivel: "nacional", normativa: "Ley 24.241, Art. 10 — monto fijo por categoria AFIP", grupo: "empleado",
+        nota: "En realidad son montos fijos por categoria, no %. Estimamos ~32% para aproximar." },
       {
         nombre: GANANCIAS_4TA.nombre,
         monto: gananciasAutonomo,
@@ -279,17 +259,7 @@ export function calcularCargaSueldo(sueldo, provincia) {
         nivel: "provincial",
         normativa: iibbServicios?.normativa || "Codigo Fiscal provincial",
         grupo: "empleado",
-        nota: "Responsable Inscripto: IIBB sobre facturacion bruta mensual",
-      },
-      {
-        nombre: sircrebData?.nombre || "SIRCREB (percepcion bancaria IIBB)",
-        monto: sircrebMonto,
-        tasa: tasaSircreb,
-        nivel: "provincial",
-        normativa: sircrebData?.normativa || SIRCREB.normativa,
-        grupo: "empleado",
-        auditado: false,
-        nota: "Retencion automatica del banco. Pago a cuenta de IIBB.",
+        nota: "Responsable Inscripto: IIBB sobre facturacion bruta. SIRCREB es pago a cuenta (no se suma aparte).",
       },
       {
         nombre: "Imp. Debitos/Creditos (sobre cobro)",

@@ -74,9 +74,6 @@ function estimarCargaConsumoSobreNeto(netoBolsillo, provincia, municipio) {
   const tasaTISH = muniData.tish || 0.01;
   const tishEstimado = netoBolsillo * tasaTISH;
 
-  // Impuesto al cheque: 0.6% cada vez que se mueve plata (debito al pagar)
-  const chequeConsumo = netoBolsillo * 0.006;
-
   const items = [
     {
       nombre: tieneExencionIVA ? "IVA estimado (reducido por Ley 19.640)" : "IVA estimado sobre consumo",
@@ -88,15 +85,6 @@ function estimarCargaConsumoSobreNeto(netoBolsillo, provincia, municipio) {
       nota: tieneExencionIVA
         ? "Tierra del Fuego: productos fabricados localmente exentos de IVA (Ley 19.640). Productos del continente sí pagan. Estimamos ~10% promedio."
         : "Estimacion: si gastas todo tu sueldo neto, ~17.4% se va en IVA",
-    },
-    {
-      nombre: "Imp. Debitos/Creditos (al gastar)",
-      monto: chequeConsumo,
-      tasa: 0.006,
-      nivel: "nacional",
-      normativa: "Ley 25.413",
-      grupo: "consumo_estimado",
-      nota: "0.6% cada vez que moves plata de tu cuenta para pagar",
     },
     {
       nombre: "IIBB en cascada (trasladado en precios)",
@@ -118,7 +106,9 @@ function estimarCargaConsumoSobreNeto(netoBolsillo, provincia, municipio) {
     },
   ];
 
-  const total = ivaEstimado + chequeConsumo + iibbEstimado + tishEstimado;
+  // No sumamos imp. al cheque acá porque ya está en el cálculo de sueldo (depósito)
+  // y en los precios via cascada. Sumarlo acá sería doble conteo.
+  const total = ivaEstimado + iibbEstimado + tishEstimado;
   return { items, total };
 }
 
